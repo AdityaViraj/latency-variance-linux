@@ -185,4 +185,3 @@ This repo shows why predictability beats speed in real low-latency systems.
 ## License
 
 MIT
-## SAMPLE RESULTS
