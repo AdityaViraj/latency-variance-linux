@@ -50,19 +50,19 @@ pagefault  → cold memory & page-fault spikes
 
 ## Project structure
 
-.
-├── src/
-│   └── main.cpp        microbenchmark implementation  
-├── scripts/
-│   └── run.sh          multi-trial runner  
-├── results/
-│   ├── baseline.txt
-│   ├── syscall.txt
-│   ├── pagefault.txt
-│   └── run_*.txt
-├── Makefile
-├── README.md
-└── .gitignore
+
+ ├── src/
+ │   └── main.cpp        microbenchmark implementation  
+ ├── scripts/
+ │   └── run.sh          multi-trial runner  
+ ├── results/
+ │   ├── baseline.txt
+ │   ├── syscall.txt
+ │   ├── pagefault.txt
+ │   └── run_*.txt
+ ├── Makefile
+ ├── README.md
+ └── .gitignore
 
 ---
 
