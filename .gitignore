@@ -1,0 +1,7 @@
+# build output
+latency
+*.o
+*.out
+
+# macOS junk
+.DS_Store
