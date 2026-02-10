@@ -1,0 +1,100 @@
+---- trial 1 ----
+Latency (ns) per iteration
+min:  0
+avg:  27.68
+p50:  41
+p90:  42
+p99:  42
+p99.9:42
+max:  27792
+
+---- trial 2 ----
+Latency (ns) per iteration
+min:  0
+avg:  27.97
+p50:  41
+p90:  42
+p99:  42
+p99.9:42
+max:  16166
+
+---- trial 3 ----
+Latency (ns) per iteration
+min:  0
+avg:  27.94
+p50:  41
+p90:  42
+p99:  42
+p99.9:42
+max:  12583
+
+---- trial 4 ----
+Latency (ns) per iteration
+min:  0
+avg:  27.97
+p50:  41
+p90:  42
+p99:  42
+p99.9:42
+max:  15500
+
+---- trial 5 ----
+Latency (ns) per iteration
+min:  0
+avg:  27.94
+p50:  41
+p90:  42
+p99:  42
+p99.9:42
+max:  11459
+
+---- trial 6 ----
+Latency (ns) per iteration
+min:  0
+avg:  27.95
+p50:  41
+p90:  42
+p99:  42
+p99.9:42
+max:  14459
+
+---- trial 7 ----
+Latency (ns) per iteration
+min:  0
+avg:  28.04
+p50:  41
+p90:  42
+p99:  42
+p99.9:42
+max:  17250
+
+---- trial 8 ----
+Latency (ns) per iteration
+min:  0
+avg:  28.00
+p50:  41
+p90:  42
+p99:  42
+p99.9:42
+max:  13042
+
+---- trial 9 ----
+Latency (ns) per iteration
+min:  0
+avg:  27.98
+p50:  41
+p90:  42
+p99:  42
+p99.9:42
+max:  11792
+
+---- trial 10 ----
+Latency (ns) per iteration
+min:  0
+avg:  27.94
+p50:  41
+p90:  42
+p99:  42
+p99.9:42
+max:  10542
+

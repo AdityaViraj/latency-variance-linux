@@ -1,0 +1,8 @@
+Latency (ns) per iteration
+min:  0
+avg:  26.15
+p50:  41
+p90:  42
+p99:  42
+p99.9:42
+max:  10250
