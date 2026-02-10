@@ -9,7 +9,7 @@ in HFT, low-latency trading, and performance-critical systems.
 
 ---
 
-## Why this matters (HFT / Low-latency context)
+## Why this matters ?
 
 In real systems:
 
@@ -45,24 +45,6 @@ Three scenarios are compared:
 baseline   → warm, stable hot path  
 syscall    → kernel boundary / syscall jitter  
 pagefault  → cold memory & page-fault spikes  
-
----
-
-## Project structure
-
-
- ├── src/
- │   └── main.cpp        microbenchmark implementation  
- ├── scripts/
- │   └── run.sh          multi-trial runner  
- ├── results/
- │   ├── baseline.txt
- │   ├── syscall.txt
- │   ├── pagefault.txt
- │   └── run_*.txt
- ├── Makefile
- ├── README.md
- └── .gitignore
 
 ---
 
