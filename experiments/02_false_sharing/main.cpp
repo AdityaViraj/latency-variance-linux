@@ -1,119 +1,92 @@
 #include <atomic>
 #include <chrono>
 #include <cstdint>
-#include <iomanip>
 #include <iostream>
 #include <thread>
-#include <vector>
 
 using Clock = std::chrono::steady_clock;
 
-static uint64_t ns_since(const Clock::time_point& a, const Clock::time_point& b) {
-    return (uint64_t)std::chrono::duration_cast<std::chrono::nanoseconds>(b - a).count();
-}
-
-// Two counters that may sit on the same cache line => false sharing.
+// Case A: two atomics likely land on the SAME cache line => false sharing
 struct CountersPacked {
-    std::atomic<uint64_t> a{0};
-    std::atomic<uint64_t> b{0};
+  std::atomic<uint64_t> a{0};
+  std::atomic<uint64_t> b{0};
 };
 
-// Force counters onto different cache lines (typical 64B line).
-struct alignas(64) PaddedAtomic {
-    std::atomic<uint64_t> x{0};
-    char pad[64 - sizeof(std::atomic<uint64_t>)]{};
-};
-
+// Case B: force them onto separate cache lines => reduce false sharing
 struct CountersPadded {
-    PaddedAtomic a;
-    PaddedAtomic b;
+  alignas(64) std::atomic<uint64_t> a{0};
+  alignas(64) std::atomic<uint64_t> b{0};
 };
 
 template <typename Counters>
-static uint64_t run_case(const char* label, int seconds) {
-    Counters c;
+void run_case(const char *label, int seconds) {
+  Counters c;
 
-    std::atomic<bool> start{false};
-    std::atomic<bool> stop{false};
+  std::atomic<bool> start{false};
+  std::atomic<bool> stop{false};
 
-    auto workerA = [&] {
-        while (!start.load(std::memory_order_acquire)) {}
-        while (!stop.load(std::memory_order_relaxed)) {
-            c.a.x.fetch_add(1, std::memory_order_relaxed);
-        }
-    };
+  uint64_t itA = 0, itB = 0;
 
-    auto workerB = [&] {
-        while (!start.load(std::memory_order_acquire)) {}
-        while (!stop.load(std::memory_order_relaxed)) {
-            c.b.x.fetch_add(1, std::memory_order_relaxed);
-        }
-    };
-
-    // Support both layouts: packed has fields a/b directly, padded has a.x/b.x.
-    // We'll adapt with lambdas below.
-    // (We avoid templates + if constexpr for simplicity.)
-
-    // Start threads
-    std::thread t1, t2;
-
-    auto t0 = Clock::now();
-    if constexpr (std::is_same_v<Counters, CountersPacked>) {
-        auto w1 = [&] {
-            while (!start.load(std::memory_order_acquire)) {}
-            while (!stop.load(std::memory_order_relaxed)) {
-                c.a.fetch_add(1, std::memory_order_relaxed);
-            }
-        };
-        auto w2 = [&] {
-            while (!start.load(std::memory_order_acquire)) {}
-            while (!stop.load(std::memory_order_relaxed)) {
-                c.b.fetch_add(1, std::memory_order_relaxed);
-            }
-        };
-        t1 = std::thread(w1);
-        t2 = std::thread(w2);
-    } else {
-        t1 = std::thread(workerA);
-        t2 = std::thread(workerB);
+  auto workerA = [&] {
+    while (!start.load(std::memory_order_acquire)) {}
+    while (!stop.load(std::memory_order_relaxed)) {
+      c.a.fetch_add(1, std::memory_order_relaxed);
+      itA++;
     }
+  };
 
-    start.store(true, std::memory_order_release);
-
-    std::this_thread::sleep_for(std::chrono::seconds(seconds));
-    stop.store(true, std::memory_order_release);
-
-    t1.join();
-    t2.join();
-    auto t1_end = Clock::now();
-
-    uint64_t total = 0;
-    if constexpr (std::is_same_v<Counters, CountersPacked>) {
-        total = c.a.load(std::memory_order_relaxed) + c.b.load(std::memory_order_relaxed);
-    } else {
-        total = c.a.x.load(std::memory_order_relaxed) + c.b.x.load(std::memory_order_relaxed);
+  auto workerB = [&] {
+    while (!start.load(std::memory_order_acquire)) {}
+    while (!stop.load(std::memory_order_relaxed)) {
+      c.b.fetch_add(1, std::memory_order_relaxed);
+      itB++;
     }
+  };
 
-    uint64_t dt_ns = ns_since(t0, t1_end);
-    double ops_per_sec = (double)total / ((double)dt_ns / 1e9);
+  std::thread t1(workerA);
+  std::thread t2(workerB);
 
-    std::cout << label << "\n";
-    std::cout << "  total ops: " << total << "\n";
-    std::cout << "  ops/sec : " << std::fixed << std::setprecision(2) << ops_per_sec << "\n\n";
+  std::cout << "\n" << label << "\n";
+  auto t0 = Clock::now();
+  start.store(true, std::memory_order_release);
 
-    return total;
+  std::this_thread::sleep_for(std::chrono::seconds(seconds));
+  stop.store(true, std::memory_order_relaxed);
+
+  t1.join();
+  t2.join();
+  auto t1t = Clock::now();
+
+  double elapsed = std::chrono::duration<double>(t1t - t0).count();
+  uint64_t total = itA + itB;
+
+  std::cout << "  seconds: " << seconds << " (measured " << elapsed << ")\n";
+  std::cout << "  threadA iters: " << itA << "\n";
+  std::cout << "  threadB iters: " << itB << "\n";
+  std::cout << "  total iters:   " << total << "\n";
+  std::cout << "  iters/sec:     " << (double)total / elapsed << "\n";
+  std::cout << "  final a,b:     " << c.a.load(std::memory_order_relaxed) << ", "
+            << c.b.load(std::memory_order_relaxed) << "\n";
 }
 
-int main(int argc, char** argv) {
-    int seconds = 2;
-    if (argc >= 2) seconds = std::max(1, std::atoi(argv[1]));
+int main(int argc, char **argv) {
+  int seconds = 2;
+  if (argc >= 2) seconds = std::max(1, std::atoi(argv[1]));
 
-    std::cout << "Experiment 02 — False Sharing (cache line ping-pong)\n";
-    std::cout << "Run time: " << seconds << "s\n\n";
+  std::cout << "False Sharing microbenchmark (2 threads increment adjacent counters)\n";
+  std::cout << "Tip: run a few times; results vary due to OS noise / turbo / scheduling.\n";
 
-    run_case<CountersPacked>("CASE A: packed atomics (likely SAME cache line)  => false sharing", seconds);
-    run_case<CountersPadded>("CASE B: padded atomics (separate cache lines)    => less bouncing", seconds);
+  run_case<CountersPacked>(
+      "CASE A: packed atomics (likely SAME cache line)  => false sharing (more bouncing)",
+      seconds);
 
-    std::cout << "Expectation: CASE B should usually have higher ops/sec.\n";
-    return 0;
+  run_case<CountersPadded>(
+      "CASE B: padded atomics (separate cache lines)    => less false sharing (less bouncing)",
+      seconds);
+
+  std::cout << "\nInterpretation:\n";
+  std::cout << "  If CASE B shows higher iters/sec than CASE A, you are seeing false sharing.\n";
+  std::cout << "  The packed case forces both cores to fight over ownership of one cache line.\n";
+  std::cout << "  The padded case reduces cache-line ping-pong.\n";
+  return 0;
 }
