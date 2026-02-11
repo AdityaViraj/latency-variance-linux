@@ -119,4 +119,16 @@ The problem is:
 
 Careful memory alignment and data separation can dramatically improve performance predictability.
 
+## Sample Results (MacBook Air M-series)
+
+CASE A (packed):
+~37–40M iters/sec
+
+CASE B (padded):
+~300–330M iters/sec
+
+Observed ~8x improvement when avoiding false sharing.
+
+
+
 ---
