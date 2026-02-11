@@ -98,11 +98,9 @@ This is a classic example of misleading microbenchmarks.
 ## Systems Lessons
 
 Incorrect takeaway:
-
 Heap is faster than stack.
 
 Correct takeaways:
-
 - Cache locality dominates performance.
 - Allocation type does not matter once data is cached.
 - Microbenchmarks must be carefully designed.
@@ -124,7 +122,7 @@ g++ -O2 -std=c++20 -march=native -Wall -Wextra -pedantic main.cpp -o stack_vs_he
 
 ## Why This Matters
 
-In low-latency systems (HFT / HPC):
+In low-latency systems :
 
 - Cache behavior is critical.
 - Benchmarks must reflect real workloads.
@@ -151,3 +149,13 @@ To make this experiment more rigorous:
 This experiment is not about stack vs heap.
 
 It is about understanding how modern CPUs, caches, and compilers actually behave.
+
+
+## Sample Results (macOS, clang -O2)
+
+Stack time: 18 ms
+Heap time: 10 ms
+
+Note:
+These results are cache-dominated and do NOT measure allocation cost.
+See explanation above.
