@@ -154,6 +154,7 @@ It is about understanding how modern CPUs, caches, and compilers actually behave
 ## Sample Results (macOS, clang -O2)
 
 Stack time: 18 ms
+
 Heap time: 10 ms
 
 Note:
